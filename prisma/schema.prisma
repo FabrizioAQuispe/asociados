@@ -1,0 +1,260 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model administradores {
+  id         Int        @id @default(autoincrement())
+  nomb       String?    @db.VarChar(255)
+  correo     String?    @db.VarChar(100)
+  password   String?    @db.VarChar(100)
+  f_creacion DateTime?  @db.Date
+  f_update   DateTime?  @db.Date
+  personas   personas[]
+}
+
+model personas {
+  idpers          Int              @id @default(autoincrement())
+  dni             String?          @db.VarChar(10)
+  ape_mat         String?          @db.VarChar(255)
+  ape_pat         String?          @db.VarChar(255)
+  nom             String?          @db.VarChar(200)
+  adminId         Int?
+  tlf_movil       String?          @db.VarChar(20)
+  correo          String?          @db.VarChar(255)
+  f_creacion      DateTime?        @db.Date
+  administradores administradores? @relation(fields: [adminId], references: [id], map: "fk_adminsId")
+  postulantes     postulantes[]
+  s_documentos    s_documentos[]
+  socios          socios[]
+
+  @@index([adminId], map: "adminsId")
+  @@index([dni], map: "dni")
+}
+
+model postulantes {
+  idpost            Int                @id @default(autoincrement())
+  desc              String?            @db.VarChar(100)
+  f_post            DateTime?          @db.Date
+  tip_doc_id        Int?
+  persId            Int
+  estado            String?            @db.VarChar(2)
+  personas          personas           @relation(fields: [persId], references: [idpers], onDelete: Cascade, map: "fk_personaId")
+  s_tipo_documentos s_tipo_documentos? @relation(fields: [tip_doc_id], references: [id], map: "fk_tipo_documento_postulante")
+  s_documentos      s_documentos[]
+  socios            socios[]
+
+  @@index([persId], map: "fk_personaId")
+  @@index([tip_doc_id], map: "fk_tipo_documento_postulante")
+}
+
+model s_cargos_socios {
+  cargoId   Int       @id @default(autoincrement())
+  socioId   Int?
+  fini      DateTime? @db.Date
+  ffin      DateTime? @db.Date
+  obs       String?   @db.VarChar(100)
+  estamento Int?
+  socios    socios?   @relation(fields: [socioId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "s_cargos_socios_ibfk_1")
+
+  @@index([socioId], map: "socioId")
+}
+
+model s_documentos {
+  id                Int               @id @default(autoincrement())
+  tip_doc_id        Int
+  pers_id           Int?
+  post_id           Int?
+  num_doc           String?           @db.VarChar(50)
+  f_emision         DateTime?         @db.Date
+  f_vencimiento     DateTime?         @db.Date
+  s_tipo_documentos s_tipo_documentos @relation(fields: [tip_doc_id], references: [id], onUpdate: Restrict, map: "s_documentos_ibfk_1")
+  personas          personas?         @relation(fields: [pers_id], references: [idpers], onDelete: Restrict, onUpdate: Restrict, map: "s_documentos_ibfk_2")
+  postulantes       postulantes?      @relation(fields: [post_id], references: [idpost], onDelete: Restrict, onUpdate: Restrict, map: "s_documentos_ibfk_3")
+
+  @@index([pers_id], map: "persona_id")
+  @@index([post_id], map: "postulante_id")
+  @@index([tip_doc_id], map: "tipo_documento_id")
+}
+
+model s_familia {
+  idfam     Int       @id
+  cod       Int?
+  idRel     Int?
+  nomrel    String?   @db.VarChar(50)
+  celrel    String?   @db.VarChar(9)
+  fnacrel   DateTime? @db.Date
+  profesion Int?
+  dni       String?   @db.VarChar(8)
+  socios    socios    @relation(fields: [idfam], references: [id], onUpdate: Restrict, map: "s_familia_ibfk_1")
+}
+
+model s_instruccion {
+  id            Int       @id @default(autoincrement())
+  socioId       Int?
+  cod           Int?
+  nivel_estudio Int?
+  nom_inst      Int?
+  dpt_inst      Int?
+  carrera       Int?
+  finiestudio   DateTime? @db.Date
+  ffinestudio   DateTime? @db.Date
+  socios        socios?   @relation(fields: [socioId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "s_instruccion_ibfk_1")
+
+  @@index([socioId], map: "socioId")
+}
+
+model s_laboral {
+  id       Int       @id @default(autoincrement())
+  socioId  Int?
+  cod      Int?
+  nomemp   String?   @db.VarChar(50)
+  cargoemp String?   @db.VarChar(50)
+  finiemp  DateTime? @db.Date
+  socios   socios?   @relation(fields: [socioId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "s_laboral_ibfk_1")
+
+  @@index([socioId], map: "socioId")
+}
+
+model s_tipo_documentos {
+  id           Int            @id @default(autoincrement())
+  nom          String         @unique(map: "nombre") @db.VarChar(100)
+  desc         String         @db.VarChar(100)
+  postulantes  postulantes[]
+  s_documentos s_documentos[]
+}
+
+model socios {
+  id              Int               @id @default(autoincrement())
+  idpers          Int?
+  idpost          Int?
+  cod             Int?
+  tipsoc          Int?
+  ubignac         Int?
+  ubigdir         String?           @db.VarChar(10)
+  genero          String?           @db.VarChar(1)
+  fnac            DateTime?         @db.Date
+  fing            DateTime?         @db.Date
+  estado          Int?
+  f_estado        DateTime?         @db.Date
+  profesion       Int?
+  ocupacion       Int?
+  lugartrabajo    Int?
+  estcivil        Int?
+  telf            String?           @db.VarChar(10)
+  condasoc        Int?
+  dni             String?           @db.VarChar(8)
+  s_cargos_socios s_cargos_socios[]
+  s_familia       s_familia?
+  s_instruccion   s_instruccion[]
+  s_laboral       s_laboral[]
+  personas        personas?         @relation(fields: [idpers], references: [idpers], onDelete: Restrict, onUpdate: Restrict, map: "socios_ibfk_1")
+  postulantes     postulantes?      @relation(fields: [idpost], references: [idpost], onDelete: Restrict, onUpdate: Restrict, map: "socios_ibfk_2")
+
+  @@index([idpers], map: "idpers")
+  @@index([idpost], map: "idpost")
+}
+
+model parametro {
+  idparametro  Int         @id @default(autoincrement())
+  cd_parametro String      @unique @db.VarChar(50)
+  descripcion  String?     @db.VarChar(50)
+  eventos      v_eventos[]
+}
+
+model v_concepto {
+  idconc        Int              @id @default(autoincrement())
+  tip_conc      String           @db.VarChar(100)
+  de_conc       String           @db.VarChar(100)
+  precio        Float?           @db.Float
+  est_conc      String?          @db.VarChar(1)
+  cd_parametro  String?          @db.VarChar(50)
+  iscombo       Int?
+  conceptos_det v_concepto_det[] @relation("ConceptoToConceptoDet")
+}
+
+model v_concepto_det {
+  idconcdet    Int        @id @default(autoincrement())
+  idconc       Int
+  de_conc_det  String?    @db.VarChar(100)
+  est_conc_det String?    @db.VarChar(1)
+  idprod       Int?
+  concepto     v_concepto @relation("ConceptoToConceptoDet", fields: [idconc], references: [idconc])
+  producto     producto?  @relation("ProductoToConceptoDetalle", fields: [idprod], references: [idprod])
+
+  @@index([idconc], map: "idconc_index")
+  @@index([idprod], map: "v_concepto_det_idprod_fkey")
+}
+
+model producto {
+  idprod           Int              @id @default(autoincrement())
+  descrip          String?          @db.VarChar(50)
+  est              String?          @db.VarChar(2)
+  f_regi           DateTime?        @db.Date
+  userId           Int?
+  detallesConcepto v_concepto_det[] @relation("ProductoToConceptoDetalle")
+}
+
+model v_eventos {
+  ideve       Int        @id @default(autoincrement())
+  cd_event    String?    @db.VarChar(10)
+  nom_event   String?    @db.VarChar(100)
+  f_event     DateTime?  @db.Date
+  f_event_ini String?    @db.VarChar(50)
+  f_event_fin String?    @db.VarChar(50)
+  tip_event   String?    @db.VarChar(50)
+  monto       Float      @db.Float
+  f_regi      DateTime?  @db.DateTime(0)
+  user_regi   String?    @db.VarChar(50)
+  f_est       DateTime?  @db.DateTime(0)
+  parametro   parametro? @relation(fields: [tip_event], references: [cd_parametro])
+
+  @@index([tip_event], map: "idx_tip_event")
+}
+
+model v_pedidos {
+  cd_event      String?         @db.VarChar(10)
+  id_ped        Int             @id @default(autoincrement())
+  id_pers       Int?
+  monto         Float?          @db.Float
+  est_ped       String?         @db.VarChar(2)
+  f_regi        DateTime?       @db.Date
+  f_act         DateTime?       @db.Date
+  userId        Int?
+  v_pedidos_det v_pedidos_det[]
+}
+
+model v_pedidos_combo {
+  idpedcombo    Int            @id @default(autoincrement())
+  cd_event      String?        @db.VarChar(10)
+  id_ped        Int?
+  id_ped_det    Int?
+  idconc        Int?
+  cd_1pla       Int?
+  cd_2pla       Int?
+  cd_aper       Int?
+  cd_beb        Int?
+  cd_bar        String?        @db.VarChar(20)
+  iscombo       Int?
+  cd_asie       Int?
+  v_pedidos_det v_pedidos_det? @relation(fields: [id_ped_det], references: [idpeddet], onDelete: Restrict, onUpdate: Restrict, map: "v_pedidos_combo_ibfk_1")
+
+  @@index([id_ped_det], map: "id_ped_det")
+}
+
+model v_pedidos_det {
+  idpeddet        Int               @id @default(autoincrement())
+  cd_event        String            @db.VarChar(10)
+  id_ped          Int
+  idconc          Int
+  cantidad        Int
+  monto           Float             @db.Float
+  v_pedidos_combo v_pedidos_combo[]
+  v_pedidos       v_pedidos         @relation(fields: [id_ped], references: [id_ped], onUpdate: Restrict, map: "v_pedidos_det_ibfk_1")
+
+  @@index([id_ped], map: "id_ped")
+}
