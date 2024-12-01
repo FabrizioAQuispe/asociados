@@ -11,8 +11,9 @@ export class EventosController {
 
     
     @Get('/search/:cd_event')
-    async getEventoCodigo(@Param('cd_event') cd_event:string){
-        return await this.eventos.getEventoCodigo(cd_event);
+    async getEventoCodigo(@Param('cd_event') cd_event: string) {
+        const response = await this.eventos.getEventoCodigo(cd_event);
+        return response
     }
 
     @Get('/parametros')

@@ -229,20 +229,22 @@ model v_pedidos {
 }
 
 model v_pedidos_combo {
-  idpedcombo    Int            @id @default(autoincrement())
-  cd_event      String?        @db.VarChar(10)
-  id_ped        Int?
-  id_ped_det    Int?
-  idconc        Int?
-  cd_1pla       Int?
-  cd_2pla       Int?
-  cd_aper       Int?
-  cd_beb        Int?
-  cd_bar        String?        @db.VarChar(20)
-  iscombo       Int?
-  cd_asie       Int?
+  idpedcombo Int     @id @default(autoincrement())
+  cd_event   String? @db.VarChar(10)
+  id_ped     Int
+  id_ped_det Int
+  idconc     Int
+  cd_1pla    Int // ID del producto (primer plato)
+  cd_2pla    Int // ID del producto (segundo plato)
+  cd_aper    Int // ID del producto (aperitivo)
+  cd_beb     Int // ID del producto (bebida)
+  cd_bar     String? @db.VarChar(20) // Producto del bar
+  iscombo    Int?
+  cd_asie    Int?
+
   v_pedidos_det v_pedidos_det? @relation(fields: [id_ped_det], references: [idpeddet], onDelete: Restrict, onUpdate: Restrict, map: "v_pedidos_combo_ibfk_1")
 
+  // Relaciones con los productos
   @@index([id_ped_det], map: "id_ped_det")
 }
 
