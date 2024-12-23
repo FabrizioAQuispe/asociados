@@ -7,6 +7,9 @@ export interface PersonasDTO{
     adminId:number,
     tlf_movil:string,
     correo:string,
-    f_creacion:Date
+    genero:string,
+    direccion:string,
+    f_creacion:Date,
+    tip_doc:number
 }
 

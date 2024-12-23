@@ -33,7 +33,7 @@ export class EventosController {
     }
 
     @Put('/update/:ideve')
-    async updateEventos(@Param('ideve')ideve:number,@Body()eventos:EventosDTO){
+    async updateEventos(@Param('ideve') ideve:number,@Body() eventos:EventosDTO){
         return await this.eventos.updateEventos(ideve,eventos)
     }
 }

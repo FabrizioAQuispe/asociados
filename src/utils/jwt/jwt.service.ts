@@ -19,9 +19,7 @@ export class JwtAuthGuard {
     
         try {
           const payload = this.jwtService.verify(token);
-          console.log(
-            request["data"] = payload
-          )
+          request["data"] = payload
         } catch {
           throw new UnauthorizedException('Token inválido');
         }

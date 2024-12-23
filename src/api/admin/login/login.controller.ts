@@ -21,7 +21,7 @@ export class LoginController {
     }
 
     @Post('/login/personas')
-    async loginPersonas(@Body()loginPersonas: LoginPersonasDTO): Promise<PersonasDTO> {
+    async loginPersonas(@Body()loginPersonas: LoginPersonasDTO) {
         return await this.asociados.loginPersonas(loginPersonas);
     }
 

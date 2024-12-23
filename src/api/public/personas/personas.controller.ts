@@ -4,7 +4,6 @@ import { PersonasDTO } from 'src/api/models/PersonasDTO';
 import { ResponseCreateDTO, ResponseDeleteDTO, ResponseUpdateDTO } from 'src/api/models/ResponsesDTO';
 import { Request } from 'express';
 import { JwtAuthGuard } from 'src/utils/jwt/jwt.service';
-import { JwtMethods } from 'src/utils/guards/gentoken.service';
 
 @Controller('personas')
 export class PersonasController {
@@ -13,12 +12,15 @@ export class PersonasController {
     ){}
     
     @Get('/list')
-    @UseGuards(JwtAuthGuard)
-    async getPersonas(request:Request){
-        return await this.personasService.getPersonas(request);
+    async getPersonas(){
+        return await this.personasService.getPersonas();
+    }
+
+    @Post('/dni')
+    async getDatosPersonaDni(@Body() dni:string){
+        return await this.personasService.getDatosPersonaDni(dni);
     }
     @Post('/create')
-    @UseGuards(JwtMethods)
     async createPersonas(@Body() personas:PersonasDTO,@Req() request:Request) : Promise<ResponseCreateDTO>{
         return await this.personasService.createPersonas(personas,request);
     }

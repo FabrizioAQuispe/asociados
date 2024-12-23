@@ -5,34 +5,34 @@ import { PrismaService } from 'src/api/prisma-service.service';
 @Injectable()
 export class ConceptosService {
     constructor(
-        private prisma:PrismaService
-    ){}
+        private prisma: PrismaService
+    ) { }
 
     //METODOS PARA CREAR CONCEPTOS CON SUS DETALLES
     async createConceptoDetalle(concepto: ConceptoDetalleDTO) {
         try {
             const response = await this.prisma.v_pedidos_det.create({
-                data:concepto,
+                data: concepto,
             });
-    
+
             if (!response) {
                 throw new Error('ERROR CREATE CONCEPTO');
             }
-    
+
             return response;
         } catch (error) {
             throw new Error('ERROR SERVICE CREATE CONCEPTO: ' + error.message);
         }
     }
 
-    async createConcepto(concepto:ConceptoDTO){
+    async createConcepto(concepto: ConceptoDTO) {
         try {
             const response = await this.prisma.v_concepto.create({
                 data: concepto,
 
             })
 
-            if(!response){
+            if (!response) {
                 throw new Error('ERROR CREATE CONCEPTO')
             }
 
@@ -44,25 +44,32 @@ export class ConceptosService {
 
     //FIN DE LOS METODOS PARA CREAR LOS CONCEPTOS
 
-    
+
     //METODOS PARA OBTENER CONCEPTOS CON SUS PARAMETROS
-    async getConceptos(tip_conc_det:number){
-        console.log(tip_conc_det)
+    async getConceptos(tip_conc_det: number) {
         try {
             const response = await this.prisma.v_concepto.findMany({
-                where:{
+                where: {
                     cd_parametro: {
                         contains: tip_conc_det.toString()
                     }
                 },
-                include:{
-                    conceptos_det:true
-                },
+                include: {
+                    v_concepto_det: {
+                        include: {
+                            producto: {
+                                select: {
+                                    idprod:true,
+                                    descrip:true,
+                                    est:true,
+                                    f_regi:true,
+                                    userId:true
+                                }
+                            }
+                        }
+                    }
+                }
             });
-
-            if(!response){
-                throw new Error('NOT FOUND CONCEPTS');
-            }
 
             return response
         } catch (error) {
@@ -70,16 +77,16 @@ export class ConceptosService {
         }
     }
 
-    async getParametros(cd_parametro:string){
+    async getParametros(cd_parametro: string) {
         try {
             const response = await this.prisma.parametro.findMany({
-                where:{
-                    cd_parametro:cd_parametro
+                where: {
+                    cd_parametro: cd_parametro
                 },
-                select:{
-                    cd_parametro:true,
-                    descripcion:true,
-                    idparametro:true
+                select: {
+                    cd_parametro: true,
+                    descripcion: true,
+                    idparametro: true
                 }
             })
             return response;
@@ -88,19 +95,21 @@ export class ConceptosService {
         }
     }
 
-    async getConceptosWithParametros(){
+    async getConceptosWithParametros() {
         try {
             const response = await this.prisma.v_concepto.findMany({
-                select:{
-                    cd_parametro:true,
-                    conceptos_det:true,
-                    de_conc:true,
-                    est_conc:true,
-                    idconc:true,
-                    precio:true,
-                    tip_conc:true
+                select: {
+                    cd_parametro: true,
+                    v_concepto_det: true,
+                    de_conc: true,
+                    est_conc: true,
+                    idconc: true,
+                    precio: true,
+                    tip_conc: true
                 }
             })
+
+            console.log(response)
 
             return response
         } catch (error) {

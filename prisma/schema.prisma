@@ -17,9 +17,18 @@ model administradores {
   personas   personas[]
 }
 
+model parametro {
+  idparametro  Int         @id @default(autoincrement())
+  cd_parametro String      @unique @db.VarChar(50)
+  descripcion  String?     @db.VarChar(50)
+  sistema      String?     @db.VarChar(50)
+  concepto     String?     @db.VarChar(50)
+  v_eventos    v_eventos[]
+}
+
 model personas {
   idpers          Int              @id @default(autoincrement())
-  dni             String?          @db.VarChar(10)
+  dni             String           @db.VarChar(10)
   ape_mat         String?          @db.VarChar(255)
   ape_pat         String?          @db.VarChar(255)
   nom             String?          @db.VarChar(200)
@@ -27,10 +36,14 @@ model personas {
   tlf_movil       String?          @db.VarChar(20)
   correo          String?          @db.VarChar(255)
   f_creacion      DateTime?        @db.Date
+  direccion       String?          @db.VarChar(255)
+  genero          String?          @db.VarChar(255)
+  tip_doc         Int?
   administradores administradores? @relation(fields: [adminId], references: [id], map: "fk_adminsId")
   postulantes     postulantes[]
   s_documentos    s_documentos[]
   socios          socios[]
+  v_pedidos       v_pedidos[]
 
   @@index([adminId], map: "adminsId")
   @@index([dni], map: "dni")
@@ -50,6 +63,40 @@ model postulantes {
 
   @@index([persId], map: "fk_personaId")
   @@index([tip_doc_id], map: "fk_tipo_documento_postulante")
+}
+
+model producto {
+  idprod         Int              @id @default(autoincrement())
+  descrip        String?          @db.VarChar(50)
+  est            String?          @db.VarChar(2)
+  f_regi         DateTime?        @db.Date
+  userId         Int?
+  v_concepto_det v_concepto_det[]
+}
+
+model rol_permiso {
+  idPerm     Int        @id @default(autoincrement())
+  rolId      Int?
+  seccId     Int?
+  ver        Boolean?   @default(false)
+  anula      Boolean?   @default(false)
+  imprimir   Boolean?   @default(false)
+  userCreate Int?
+  fec_create DateTime?  @db.Date
+  roles      roles?     @relation(fields: [rolId], references: [rolId], onDelete: Restrict, onUpdate: Restrict, map: "rol_permiso_ibfk_1")
+  secciones  secciones? @relation(fields: [seccId], references: [seccId], onDelete: Restrict, onUpdate: Restrict, map: "rol_permiso_ibfk_2")
+
+  @@index([seccId], map: "seccId")
+  @@index([rolId], map: "rol_permiso_ibfk_1")
+}
+
+model roles {
+  rolId       Int           @id @default(autoincrement())
+  nombre      String?       @db.VarChar(20)
+  userCreate  String?       @db.VarChar(100)
+  fec_create  DateTime?     @db.Date
+  rol_permiso rol_permiso[]
+  usuario_rol usuario_rol[]
 }
 
 model s_cargos_socios {
@@ -128,6 +175,14 @@ model s_tipo_documentos {
   s_documentos s_documentos[]
 }
 
+model secciones {
+  seccId      Int           @id @default(autoincrement())
+  nombre      String?       @db.VarChar(20)
+  userCreate  String?       @db.VarChar(100)
+  fec_create  DateTime?     @db.Date
+  rol_permiso rol_permiso[]
+}
+
 model socios {
   id              Int               @id @default(autoincrement())
   idpers          Int?
@@ -159,22 +214,70 @@ model socios {
   @@index([idpost], map: "idpost")
 }
 
-model parametro {
-  idparametro  Int         @id @default(autoincrement())
-  cd_parametro String      @unique @db.VarChar(50)
-  descripcion  String?     @db.VarChar(50)
-  eventos      v_eventos[]
+model t_pago {
+  idPago      Int          @id @default(autoincrement())
+  cd_turn     String?      @db.VarChar(10)
+  cd_pago     String?      @db.VarChar(20)
+  cd_event    String?      @db.VarChar(255)
+  id_ped      Int?
+  idpers      Int?
+  do_tipo     String?      @db.VarChar(2)
+  do_seri     String?      @db.VarChar(10)
+  do_corr     String?      @db.VarChar(20)
+  fe_docu     DateTime?    @db.DateTime(0)
+  moneda      String?      @db.VarChar(1)
+  mo_docu     Decimal?     @db.Decimal(10, 0)
+  mo_inaf     Decimal?     @db.Decimal(10, 0)
+  mo_afec     Decimal?     @db.Decimal(10, 0)
+  mo_igv      Decimal?     @db.Decimal(10, 0)
+  mo_desc     Decimal?     @db.Decimal(10, 0)
+  de_obs      String?      @db.VarChar(250)
+  fe_canc     DateTime?    @db.Date
+  in_estado   Boolean?     @db.Bit(1)
+  fe_regi     DateTime?    @db.DateTime(0)
+  cd_user     String?      @db.VarChar(20)
+  fe_actu     DateTime?    @db.DateTime(0)
+  procesado   Int?
+  t_pago_cond t_pago_cond[]
+}
+
+model usuario_rol {
+  idUserRol  Int       @id @default(autoincrement())
+  rolId      Int?
+  userId     Int?
+  rolPermId  Int?
+  idPerm     Int?
+  userCreate String?   @db.VarChar(50)
+  fec_create DateTime? @db.Date
+  usuarios   usuarios? @relation(fields: [userId], references: [userId], onDelete: Restrict, onUpdate: Restrict, map: "usuario_rol_ibfk_1")
+  roles      roles?    @relation(fields: [rolId], references: [rolId], onDelete: Restrict, onUpdate: Restrict, map: "usuario_rol_ibfk_2")
+
+  @@index([rolId], map: "rolId")
+  @@index([userId], map: "userId")
+}
+
+model usuarios {
+  userId       Int           @id @default(autoincrement())
+  nombre       String?       @db.VarChar(100)
+  usuario      String?       @db.VarChar(20)
+  password     String?       @db.VarChar(100)
+  fec_create   DateTime?     @db.Date
+  fec_actu     DateTime?     @db.Date
+  user_created String?       @db.VarChar(100)
+  user_actu    String?       @db.VarChar(100)
+  usuario_rol  usuario_rol[]
 }
 
 model v_concepto {
-  idconc        Int              @id @default(autoincrement())
-  tip_conc      String           @db.VarChar(100)
-  de_conc       String           @db.VarChar(100)
-  precio        Float?           @db.Float
-  est_conc      String?          @db.VarChar(1)
-  cd_parametro  String?          @db.VarChar(50)
-  iscombo       Int?
-  conceptos_det v_concepto_det[] @relation("ConceptoToConceptoDet")
+  idconc         Int              @id @default(autoincrement())
+  tip_conc       String           @db.VarChar(100)
+  de_conc        String           @db.VarChar(100)
+  precio         Float?           @db.Float
+  est_conc       String?          @db.VarChar(1)
+  cd_parametro   String?          @db.VarChar(50)
+  iscombo        Int?
+  v_concepto_det v_concepto_det[]
+  v_pedidos_det  v_pedidos_det[]
 }
 
 model v_concepto_det {
@@ -183,41 +286,33 @@ model v_concepto_det {
   de_conc_det  String?    @db.VarChar(100)
   est_conc_det String?    @db.VarChar(1)
   idprod       Int?
-  concepto     v_concepto @relation("ConceptoToConceptoDet", fields: [idconc], references: [idconc])
-  producto     producto?  @relation("ProductoToConceptoDetalle", fields: [idprod], references: [idprod])
+  v_concepto   v_concepto @relation(fields: [idconc], references: [idconc])
+  producto     producto?  @relation(fields: [idprod], references: [idprod])
 
   @@index([idconc], map: "idconc_index")
   @@index([idprod], map: "v_concepto_det_idprod_fkey")
 }
 
-model producto {
-  idprod           Int              @id @default(autoincrement())
-  descrip          String?          @db.VarChar(50)
-  est              String?          @db.VarChar(2)
-  f_regi           DateTime?        @db.Date
-  userId           Int?
-  detallesConcepto v_concepto_det[] @relation("ProductoToConceptoDetalle")
-}
-
 model v_eventos {
-  ideve       Int        @id @default(autoincrement())
-  cd_event    String?    @db.VarChar(10)
-  nom_event   String?    @db.VarChar(100)
-  f_event     DateTime?  @db.Date
-  f_event_ini String?    @db.VarChar(50)
-  f_event_fin String?    @db.VarChar(50)
-  tip_event   String?    @db.VarChar(50)
-  monto       Float      @db.Float
-  f_regi      DateTime?  @db.DateTime(0)
-  user_regi   String?    @db.VarChar(50)
-  f_est       DateTime?  @db.DateTime(0)
-  parametro   parametro? @relation(fields: [tip_event], references: [cd_parametro])
+  ideve         Int             @id @default(autoincrement())
+  cd_event      String?         @unique @db.VarChar(255)
+  nom_event     String?         @db.VarChar(100)
+  f_event       DateTime?       @db.Date
+  f_event_ini   String?         @db.VarChar(50)
+  f_event_fin   String?         @db.VarChar(50)
+  tip_event     String?         @db.VarChar(50)
+  monto         Float           @db.Float
+  f_regi        DateTime?       @db.DateTime(0)
+  user_regi     String?         @db.VarChar(50)
+  f_est         DateTime?       @db.DateTime(0)
+  parametro     parametro?      @relation(fields: [tip_event], references: [cd_parametro])
+  v_pedidos_det v_pedidos_det[]
 
   @@index([tip_event], map: "idx_tip_event")
 }
 
 model v_pedidos {
-  cd_event      String?         @db.VarChar(10)
+  cd_event      String?         @db.VarChar(255)
   id_ped        Int             @id @default(autoincrement())
   id_pers       Int?
   monto         Float?          @db.Float
@@ -225,12 +320,15 @@ model v_pedidos {
   f_regi        DateTime?       @db.Date
   f_act         DateTime?       @db.Date
   userId        Int?
+  personas      personas?       @relation(fields: [id_pers], references: [idpers])
   v_pedidos_det v_pedidos_det[]
+
+  @@index([id_pers], map: "v_pedidos_id_pers_fkey")
 }
 
 model v_pedidos_combo {
   idpedcombo    Int            @id @default(autoincrement())
-  cd_event      String?        @db.VarChar(10)
+  cd_event      String?        @db.VarChar(255)
   id_ped        Int?
   id_ped_det    Int?
   idconc        Int?
@@ -248,13 +346,56 @@ model v_pedidos_combo {
 
 model v_pedidos_det {
   idpeddet        Int               @id @default(autoincrement())
-  cd_event        String            @db.VarChar(10)
+  cd_event        String?           @db.VarChar(255)
   id_ped          Int
   idconc          Int
   cantidad        Int
   monto           Float             @db.Float
   v_pedidos_combo v_pedidos_combo[]
+  v_eventos       v_eventos?        @relation(fields: [cd_event], references: [cd_event])
   v_pedidos       v_pedidos         @relation(fields: [id_ped], references: [id_ped], onUpdate: Restrict, map: "v_pedidos_det_ibfk_1")
+  v_concepto      v_concepto        @relation(fields: [idconc], references: [idconc])
 
   @@index([id_ped], map: "id_ped")
+  @@index([cd_event], map: "v_pedidos_det_cd_event_fkey")
+  @@index([idconc], map: "v_pedidos_det_idconc_fkey")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model v_turno {
+  cd_turn  String?   @db.VarChar(250)
+  fec_turn DateTime? @db.Date
+  fec_ini  DateTime? @db.Date
+  fec_fin  DateTime? @db.Date
+  estado   Int?
+
+  @@ignore
+}
+
+model variable {
+  idVar    Int     @id @default(autoincrement())
+  sistema  String? @db.VarChar(50)
+  concepto String? @db.VarChar(50)
+  cd_var   String? @db.VarChar(20)
+  descrip  String? @db.VarChar(50)
+}
+
+model t_pago_cond {
+  id_pago     Int         
+  cd_turn     String?   @db.VarChar(255)
+  cd_pago     String?   @db.VarChar(255)
+  cd_event    String?   @db.VarChar(255)
+  id_ped      Int?
+  do_tipo     Int?
+  do_seri     Int?
+  do_corr     String?   @db.VarChar(255)
+  ord         Int
+  referencia  String?   @db.VarChar(255)
+  lote        String?   @db.VarChar(255)
+  fec_ope     DateTime? @db.Date
+  cond_pago   String?   @db.VarChar(255)
+  monto       Float?    @db.Float
+  fecha_docu  DateTime? @db.Date
+  idPagoCond  Int       @id @default(autoincrement())
+  t_pago_cond t_pago    @relation(fields: [id_pago], references: [idPago])
 }

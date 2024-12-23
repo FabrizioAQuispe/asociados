@@ -25,7 +25,6 @@ export class EventosService {
     }
 
     async getEventoCodigo(cd_event:string){
-        console.log(cd_event)
 
         try {
             const response = await this.prisma.v_eventos.findFirst({
@@ -35,7 +34,8 @@ export class EventosService {
                 include:{
                     parametro: true
                 }
-            }) 
+            });
+            
 
             return response
         } catch (error) {
